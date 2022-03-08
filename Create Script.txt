@@ -1,0 +1,143 @@
+-- Remove conflicting tables
+DROP TABLE IF EXISTS alergen CASCADE;
+DROP TABLE IF EXISTS dite CASCADE;
+DROP TABLE IF EXISTS jidelnicek CASCADE;
+DROP TABLE IF EXISTS kuchar CASCADE;
+DROP TABLE IF EXISTS objednavka CASCADE;
+DROP TABLE IF EXISTS pokrm CASCADE;
+DROP TABLE IF EXISTS polozka CASCADE;
+DROP TABLE IF EXISTS produkt CASCADE;
+DROP TABLE IF EXISTS stravnik CASCADE;
+DROP TABLE IF EXISTS surovina CASCADE;
+DROP TABLE IF EXISTS tym CASCADE;
+DROP TABLE IF EXISTS vedouci CASCADE;
+DROP TABLE IF EXISTS surovina_pokrm CASCADE;
+DROP TABLE IF EXISTS surovina_alergen CASCADE;
+-- End of removing
+
+CREATE TABLE alergen (
+    id_alergen SERIAL NOT NULL,
+    kategorie VARCHAR(15) NOT NULL
+);
+ALTER TABLE alergen ADD CONSTRAINT pk_alergen PRIMARY KEY (id_alergen);
+
+CREATE TABLE dite (
+    id_stravnik INTEGER NOT NULL,
+    id_tym INTEGER NOT NULL,
+    vek INTEGER NOT NULL
+);
+ALTER TABLE dite ADD CONSTRAINT pk_dite PRIMARY KEY (id_stravnik);
+
+CREATE TABLE jidelnicek (
+    den SERIAL NOT NULL,
+    id_stravnik INTEGER NOT NULL,
+    id_pokrm INTEGER,
+    obed VARCHAR(35),
+    snidane VARCHAR(35),
+    vecere VARCHAR(35)
+);
+ALTER TABLE jidelnicek ADD CONSTRAINT pk_jidelnicek PRIMARY KEY (den);
+
+CREATE TABLE kuchar (
+    id_stravnik INTEGER NOT NULL
+);
+ALTER TABLE kuchar ADD CONSTRAINT pk_kuchar PRIMARY KEY (id_stravnik);
+
+CREATE TABLE objednavka (
+    id_objednavka SERIAL NOT NULL,
+    id_stravnik INTEGER NOT NULL,
+    cena INTEGER NOT NULL,
+    datum TIMESTAMP NOT NULL
+);
+ALTER TABLE objednavka ADD CONSTRAINT pk_objednavka PRIMARY KEY (id_objednavka);
+
+CREATE TABLE pokrm (
+    id_pokrm SERIAL NOT NULL,
+    nazev_pokrm VARCHAR(35) NOT NULL
+);
+ALTER TABLE pokrm ADD CONSTRAINT pk_pokrm PRIMARY KEY (id_pokrm);
+
+CREATE TABLE polozka (
+    id_polozka SERIAL NOT NULL,
+    id_objednavka INTEGER NOT NULL,
+    id_produkt INTEGER NOT NULL,
+    nazev_zbozi VARCHAR(25) NOT NULL,
+    mnozstvi INTEGER NOT NULL,
+    cena_kus INTEGER NOT NULL
+);
+ALTER TABLE polozka ADD CONSTRAINT pk_polozka PRIMARY KEY (id_polozka);
+
+CREATE TABLE produkt (
+    id_produkt SERIAL NOT NULL,
+    nazev_produkt VARCHAR(25) NOT NULL,
+    aktualni_cena INTEGER,
+    popis VARCHAR(25),
+    omezeni BOOLEAN
+);
+ALTER TABLE produkt ADD CONSTRAINT pk_produkt PRIMARY KEY (id_produkt);
+
+CREATE TABLE stravnik (
+    id_stravnik SERIAL NOT NULL,
+    prezdivka VARCHAR(25) NOT NULL,
+    jmeno VARCHAR(25) NOT NULL,
+    prijmeni VARCHAR(25) NOT NULL,
+    alergie VARCHAR(25)
+);
+ALTER TABLE stravnik ADD CONSTRAINT pk_stravnik PRIMARY KEY (id_stravnik);
+ALTER TABLE stravnik ADD CONSTRAINT uc_stravnik_prezdivka UNIQUE (prezdivka);
+
+CREATE TABLE surovina (
+    id_surovina SERIAL NOT NULL,
+    nazev_surovina VARCHAR(25) NOT NULL
+);
+ALTER TABLE surovina ADD CONSTRAINT pk_surovina PRIMARY KEY (id_surovina);
+
+CREATE TABLE tym (
+    id_tym SERIAL NOT NULL,
+    den INTEGER NOT NULL,
+    barva VARCHAR(10) NOT NULL
+);
+ALTER TABLE tym ADD CONSTRAINT pk_tym PRIMARY KEY (id_tym);
+ALTER TABLE tym ADD CONSTRAINT uc_tym_barva UNIQUE (barva);
+
+CREATE TABLE vedouci (
+    id_stravnik INTEGER NOT NULL,
+    doprovod INTEGER
+);
+ALTER TABLE vedouci ADD CONSTRAINT pk_vedouci PRIMARY KEY (id_stravnik);
+
+CREATE TABLE surovina_pokrm (
+    id_surovina INTEGER NOT NULL,
+    id_pokrm INTEGER NOT NULL
+);
+ALTER TABLE surovina_pokrm ADD CONSTRAINT pk_surovina_pokrm PRIMARY KEY (id_surovina, id_pokrm);
+
+CREATE TABLE surovina_alergen (
+    id_surovina INTEGER NOT NULL,
+    id_alergen INTEGER NOT NULL
+);
+ALTER TABLE surovina_alergen ADD CONSTRAINT pk_surovina_alergen PRIMARY KEY (id_surovina, id_alergen);
+
+ALTER TABLE dite ADD CONSTRAINT fk_dite_stravnik FOREIGN KEY (id_stravnik) REFERENCES stravnik (id_stravnik) ON DELETE CASCADE;
+ALTER TABLE dite ADD CONSTRAINT fk_dite_tym FOREIGN KEY (id_tym) REFERENCES tym (id_tym) ON DELETE CASCADE;
+
+ALTER TABLE jidelnicek ADD CONSTRAINT fk_jidelnicek_kuchar FOREIGN KEY (id_stravnik) REFERENCES kuchar (id_stravnik) ON DELETE CASCADE;
+ALTER TABLE jidelnicek ADD CONSTRAINT fk_jidelnicek_pokrm FOREIGN KEY (id_pokrm) REFERENCES pokrm (id_pokrm) ON DELETE CASCADE;
+
+ALTER TABLE kuchar ADD CONSTRAINT fk_kuchar_stravnik FOREIGN KEY (id_stravnik) REFERENCES stravnik (id_stravnik) ON DELETE CASCADE;
+
+ALTER TABLE objednavka ADD CONSTRAINT fk_objednavka_stravnik FOREIGN KEY (id_stravnik) REFERENCES stravnik (id_stravnik) ON DELETE CASCADE;
+
+ALTER TABLE polozka ADD CONSTRAINT fk_polozka_objednavka FOREIGN KEY (id_objednavka) REFERENCES objednavka (id_objednavka) ON DELETE CASCADE;
+ALTER TABLE polozka ADD CONSTRAINT fk_polozka_produkt FOREIGN KEY (id_produkt) REFERENCES produkt (id_produkt) ON DELETE CASCADE;
+
+ALTER TABLE tym ADD CONSTRAINT fk_tym_jidelnicek FOREIGN KEY (den) REFERENCES jidelnicek (den) ON DELETE CASCADE;
+
+ALTER TABLE vedouci ADD CONSTRAINT fk_vedouci_stravnik FOREIGN KEY (id_stravnik) REFERENCES stravnik (id_stravnik) ON DELETE CASCADE;
+
+ALTER TABLE surovina_pokrm ADD CONSTRAINT fk_surovina_pokrm_surovina FOREIGN KEY (id_surovina) REFERENCES surovina (id_surovina) ON DELETE CASCADE;
+ALTER TABLE surovina_pokrm ADD CONSTRAINT fk_surovina_pokrm_pokrm FOREIGN KEY (id_pokrm) REFERENCES pokrm (id_pokrm) ON DELETE CASCADE;
+
+ALTER TABLE surovina_alergen ADD CONSTRAINT fk_surovina_alergen_surovina FOREIGN KEY (id_surovina) REFERENCES surovina (id_surovina) ON DELETE CASCADE;
+ALTER TABLE surovina_alergen ADD CONSTRAINT fk_surovina_alergen_alergen FOREIGN KEY (id_alergen) REFERENCES alergen (id_alergen) ON DELETE CASCADE;
+
